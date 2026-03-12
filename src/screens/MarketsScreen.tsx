@@ -42,6 +42,25 @@ export const MarketsScreen: React.FC<Props> = ({ navigation }) => {
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: theme.primaryBg }]} edges={['top', 'left', 'right']}>
       <View style={styles.centered}>
+        {/* Sticky header + search bar */}
+        <View style={[styles.stickyHeader, { backgroundColor: theme.primaryBg }]}>
+          <View style={styles.header}>
+            <Text style={[styles.headerTitle, { color: theme.textPrimary }]}>Markets</Text>
+            <View style={[styles.balancePill, { backgroundColor: theme.accentDim }]}>
+              <Text style={[styles.balanceText, { color: theme.accent }]}>$4,250.75</Text>
+            </View>
+          </View>
+          <View style={styles.searchContainer}>
+            <TextInput
+              style={[styles.searchInput, { backgroundColor: theme.secondaryBg, borderColor: theme.border, color: theme.textPrimary }]}
+              placeholder="Search markets..."
+              placeholderTextColor={theme.textSecondary}
+              value={search}
+              onChangeText={setSearch}
+            />
+          </View>
+        </View>
+
         <FlatList
           data={filteredMarkets}
           keyExtractor={item => item.id}
@@ -49,23 +68,6 @@ export const MarketsScreen: React.FC<Props> = ({ navigation }) => {
           contentContainerStyle={styles.listContent}
           ListHeaderComponent={
             <>
-              <View style={styles.header}>
-                <Text style={[styles.headerTitle, { color: theme.textPrimary }]}>Markets</Text>
-                <View style={[styles.balancePill, { backgroundColor: theme.accentDim }]}>
-                  <Text style={[styles.balanceText, { color: theme.accent }]}>$4,250.75</Text>
-                </View>
-              </View>
-
-              <View style={styles.searchContainer}>
-                <TextInput
-                  style={[styles.searchInput, { backgroundColor: theme.secondaryBg, borderColor: theme.border, color: theme.textPrimary }]}
-                  placeholder="Search markets..."
-                  placeholderTextColor={theme.textSecondary}
-                  value={search}
-                  onChangeText={setSearch}
-                />
-              </View>
-
               <View style={styles.sectionHeader}>
                 <Text style={[styles.sectionTitle, { color: theme.textPrimary }]}>Trending</Text>
               </View>
@@ -133,8 +135,14 @@ const styles = StyleSheet.create({
     maxWidth: MAX_CONTENT_WIDTH,
     alignSelf: 'center',
   },
+  stickyHeader: {
+    paddingHorizontal: spacing.lg,
+    paddingTop: spacing.lg,
+    zIndex: 1,
+  },
   listContent: {
     padding: spacing.lg,
+    paddingTop: 0,
     paddingBottom: 100,
   },
   header: {

@@ -1,6 +1,6 @@
 import React, { useState, useCallback, useRef } from 'react';
 import {
-  View, Text, StyleSheet, Dimensions, Pressable, ScrollView, Platform, Alert,
+  View, Text, StyleSheet, Dimensions, Pressable, ScrollView, Platform,
   Animated, PanResponder, Easing,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -8,6 +8,7 @@ import { useTheme } from '../theme/ThemeContext';
 import { radii } from '../theme';
 import { allMarkets } from '../data/mockData';
 import { ConfirmationSheet } from '../components/ConfirmationSheet';
+import { Toast } from '../components/Toast';
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
 const CARD_HEIGHT = Math.min(SCREEN_HEIGHT * 0.56, 500);
@@ -22,6 +23,8 @@ export const PredictScreen: React.FC = () => {
   const [amount, setAmount] = useState(100);
   const [showConfirmation, setShowConfirmation] = useState(false);
   const [pendingPrediction, setPendingPrediction] = useState<'YES' | 'NO'>('YES');
+  const [toastVisible, setToastVisible] = useState(false);
+  const [toastMessage, setToastMessage] = useState('');
 
   const translateX = useRef(new Animated.Value(0)).current;
   const translateY = useRef(new Animated.Value(0)).current;
@@ -42,9 +45,8 @@ export const PredictScreen: React.FC = () => {
 
   const handleConfirm = useCallback(() => {
     setShowConfirmation(false); goToNext(); resetCard();
-    Platform.OS === 'web'
-      ? window.alert(`Trade Placed! ${pendingPrediction} with $${amount}`)
-      : Alert.alert('Trade Placed!', `${pendingPrediction} with $${amount}`);
+    setToastMessage(`${pendingPrediction} with $${amount} — Trade Placed!`);
+    setToastVisible(true);
   }, [pendingPrediction, amount, goToNext, resetCard]);
 
   const flyCard = useCallback((dir: 'YES' | 'NO') => {
@@ -275,6 +277,7 @@ export const PredictScreen: React.FC = () => {
 
       <ConfirmationSheet visible={showConfirmation} prediction={pendingPrediction} amount={amount}
         estimatedPayout={estimatedPayout} onConfirm={handleConfirm} onClose={() => { setShowConfirmation(false); resetCard(); }} />
+      <Toast visible={toastVisible} message={toastMessage} onHide={() => setToastVisible(false)} />
     </SafeAreaView>
   );
 };
