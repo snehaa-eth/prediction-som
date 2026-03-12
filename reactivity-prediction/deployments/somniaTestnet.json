@@ -1,0 +1,11 @@
+{
+  "contractName": "PredictionMarket",
+  "address": "0xEf94e447c1cD561307EB606E2edd31Fd8A239082",
+  "deploymentTx": "0x8c8691d1e3ff2492bce2af7caa29f9e4c8281490bede8903e405ac8ac3757cf4",
+  "chainId": 50312,
+  "network": "somniaTestnet",
+  "collateral": "0x6D6eD86155CA2BF79e12b2499e0a9bd3563A1C4f",
+  "resolver": "0xdAF0182De86F904918Db8d07c7340A1EfcDF8244",
+  "feeBps": "200",
+  "deployedAt": "2026-03-12T19:50:10.068Z"
+}

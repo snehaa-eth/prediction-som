@@ -1,0 +1,27 @@
+{
+  "name": "hardhat-project",
+  "scripts": {
+    "deploy": "hardhat run scripts/deploy.ts --network somniaTestnet",
+    "create-subscription": "ts-node scripts/create-subscription.ts",
+    "subscribe-events": "npm run create-subscription",
+    "manage-subscription": "ts-node scripts/manage-subscription.ts",
+    "manage-events": "npm run manage-subscription -- events",
+    "test-market": "hardhat run scripts/test-market.ts --network somniaTestnet",
+    "test-run": "npm run test-market",
+    "test": "hardhat test",
+    "frontend": "python3 -m http.server 4173 --directory frontend"
+  },
+  "devDependencies": {
+    "@nomicfoundation/hardhat-toolbox": "^6.1.0",
+    "hardhat": "^2.28.4",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.7.3"
+  },
+  "dependencies": {
+    "@openzeppelin/contracts": "^5.6.1",
+    "@somnia-chain/reactivity": "^0.1.10",
+    "@somnia-chain/reactivity-contracts": "^0.1.6",
+    "dotenv": "^17.2.3",
+    "viem": "^2.21.54"
+  }
+}
