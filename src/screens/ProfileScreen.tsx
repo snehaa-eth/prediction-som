@@ -3,12 +3,14 @@ import { View, Text, StyleSheet, Pressable, ScrollView, Switch } from 'react-nat
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTheme } from '../theme/ThemeContext';
 import { radii, spacing } from '../theme';
+import { useWallet } from '../context/WalletContext';
 import { userProfile } from '../data/mockData';
 
 const MAX_CONTENT_WIDTH = 600;
 
 export const ProfileScreen: React.FC = () => {
   const { theme, isDark, toggleTheme } = useTheme();
+  const { shortAddress, address, logout } = useWallet();
 
   const stats = [
     { label: 'Total Trades', value: userProfile.totalTrades.toString() },
@@ -41,11 +43,11 @@ export const ProfileScreen: React.FC = () => {
           <View>
             <View style={[styles.walletCard, { backgroundColor: theme.cardBg, borderColor: theme.border }]}>
               <View style={[styles.avatarCircle, { backgroundColor: theme.accentDim }]}>
-                <Text style={[styles.avatarText, { color: theme.accent }]}>{userProfile.shortAddress.slice(2, 4)}</Text>
+                <Text style={[styles.avatarText, { color: theme.accent }]}>{shortAddress?.slice(2, 6) ?? '0x00'}</Text>
               </View>
               <View style={styles.walletInfo}>
-                <Text style={[styles.walletLabel, { color: theme.textSecondary }]}>Wallet Address</Text>
-                <Text style={[styles.walletAddress, { color: theme.textPrimary }]}>{userProfile.shortAddress}</Text>
+                <Text style={[styles.walletLabel, { color: theme.textSecondary }]}>Connected Wallet</Text>
+                <Text style={[styles.walletAddress, { color: theme.textPrimary }]}>{shortAddress ?? '—'}</Text>
               </View>
               <Pressable style={[styles.copyBtn, { backgroundColor: theme.glass }]}>
                 <Text style={[styles.copyBtnText, { color: theme.textSecondary }]}>Copy</Text>
@@ -90,8 +92,8 @@ export const ProfileScreen: React.FC = () => {
             ))}
           </View>
 
-          <Pressable style={[styles.disconnectBtn, { borderColor: theme.loss }]}>
-            <Text style={[styles.disconnectText, { color: theme.loss }]}>Disconnect Wallet</Text>
+          <Pressable style={[styles.disconnectBtn, { borderColor: theme.loss }]} onPress={() => logout()}>
+            <Text style={[styles.disconnectText, { color: theme.loss }]}>Sign Out</Text>
           </Pressable>
         </View>
       </ScrollView>

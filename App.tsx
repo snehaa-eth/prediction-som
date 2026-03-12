@@ -1,28 +1,40 @@
-import React, { useState } from 'react';
-import { Platform, Dimensions } from 'react-native';
+import '@walletconnect/react-native-compat';
+
+import React from 'react';
+import { View, Platform, Dimensions } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { SafeAreaProvider, initialWindowMetrics } from 'react-native-safe-area-context';
 import { NavigationContainer } from '@react-navigation/native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
+import { AppKitProvider, AppKit, useAccount } from '@reown/appkit-react-native';
 import { ThemeProvider, useTheme } from './src/theme/ThemeContext';
 import { MainTabs } from './src/navigation/AppNavigator';
+import { WalletProvider } from './src/context/WalletContext';
 import { OnboardingScreen } from './src/screens/OnboardingScreen';
+import { appKit } from './src/lib/AppKitConfig';
 
 function AppInner() {
-  const [isConnected, setIsConnected] = useState(false);
   const { isDark } = useTheme();
 
   return (
     <>
       <StatusBar style={isDark ? 'light' : 'dark'} />
-      {isConnected ? (
-        <NavigationContainer>
-          <MainTabs />
-        </NavigationContainer>
-      ) : (
-        <OnboardingScreen onConnect={() => setIsConnected(true)} />
-      )}
+      <AuthGate />
     </>
+  );
+}
+
+function AuthGate() {
+  const { isConnected } = useAccount();
+
+  return isConnected ? (
+    <NavigationContainer>
+      <WalletProvider>
+        <MainTabs />
+      </WalletProvider>
+    </NavigationContainer>
+  ) : (
+    <OnboardingScreen />
   );
 }
 
@@ -36,9 +48,14 @@ export default function App() {
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       <SafeAreaProvider initialMetrics={initialWindowMetrics ?? FALLBACK_METRICS}>
-        <ThemeProvider>
-          <AppInner />
-        </ThemeProvider>
+        <AppKitProvider instance={appKit}>
+          <ThemeProvider>
+            <View style={{ flex: 1 }}>
+              <AppInner />
+              <AppKit />
+            </View>
+          </ThemeProvider>
+        </AppKitProvider>
       </SafeAreaProvider>
     </GestureHandlerRootView>
   );
