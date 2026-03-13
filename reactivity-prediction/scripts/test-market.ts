@@ -102,6 +102,8 @@ async function main() {
   const winningOutcome = Number(process.env.TEST_WINNING_OUTCOME ?? String(outcome));
   const liqAmount = parseAmount(process.env.TEST_LIQUIDITY ?? "100", decimals);
   const buyAmount = parseAmount(process.env.TEST_BUY_AMOUNT ?? "10", decimals);
+  const adminBuyEnabled = process.env.TEST_ADMIN_BUY !== "0";
+  const userBuyEnabled = process.env.TEST_USER_BUY !== "0";
   const sellShares = process.env.TEST_SELL_SHARES ? parseAmount(process.env.TEST_SELL_SHARES, decimals) : 0n;
   const pollBlocks = Number(process.env.TEST_POLL_BLOCKS ?? "20");
   const shouldRedeem = process.env.TEST_REDEEM === "1" || process.env.TEST_REDEEM === "true";
@@ -119,6 +121,7 @@ async function main() {
   console.log("Question     :", question);
   console.log("Outcome buy  :", outcome);
   console.log("Outcome win  :", winningOutcome);
+  console.log("Resolved sig :", ethers.id("Resolved(uint256,uint8)"));
 
   const balanceBefore = BigInt(await token.balanceOf(signer.address));
   console.log("Token balance:", fmt(balanceBefore));
@@ -148,6 +151,14 @@ async function main() {
     marketId = created.args.marketId;
     console.log("Market ID    :", marketId.toString());
   }
+
+  const marketInfo = await market.getMarket(marketId);
+  const yesProb = await market.getYesProbability(marketId);
+  console.log(
+    "Market info  :",
+    `{question="${marketInfo.question}" yes=${fmt(BigInt(marketInfo.yesReserve))} no=${fmt(BigInt(marketInfo.noReserve))} resolved=${marketInfo.resolved} outcome=${marketInfo.winningOutcome}}`,
+  );
+  console.log("Yes prob     :", `${Number(yesProb) / 100}%`);
 
   const allowance = BigInt(await token.allowance(signer.address, contractAddress));
   const needed = liqAmount + buyAmount;
@@ -181,20 +192,39 @@ async function main() {
     buyer = userWallet;
   }
 
-  const buyTx = await market.connect(buyer).buyOutcome(marketId, outcome, buyAmount, 0);
-  const buyReceipt = await buyTx.wait();
-  const bought = buyReceipt?.logs
-    ?.map((log: any) => {
-      try {
-        return marketInterface.parseLog(log);
-      } catch {
-        return null;
-      }
-    })
-    .find((e: any) => e && e.name === "Bought");
+  if (adminBuyEnabled) {
+    const buyTx = await market.connect(signer).buyOutcome(marketId, outcome, buyAmount, 0);
+    const buyReceipt = await buyTx.wait();
+    const bought = buyReceipt?.logs
+      ?.map((log: any) => {
+        try {
+          return marketInterface.parseLog(log);
+        } catch {
+          return null;
+        }
+      })
+      .find((e: any) => e && e.name === "Bought");
 
-  const sharesOut = bought?.args?.sharesOut ?? 0n;
-  console.log("Bought shares:", fmt(sharesOut));
+    const sharesOut = bought?.args?.sharesOut ?? 0n;
+    console.log("Admin bought :", fmt(sharesOut));
+  }
+
+  if (userWallet && userBuyEnabled) {
+    const buyTx = await market.connect(userWallet).buyOutcome(marketId, outcome, buyAmount, 0);
+    const buyReceipt = await buyTx.wait();
+    const bought = buyReceipt?.logs
+      ?.map((log: any) => {
+        try {
+          return marketInterface.parseLog(log);
+        } catch {
+          return null;
+        }
+      })
+      .find((e: any) => e && e.name === "Bought");
+
+    const sharesOut = bought?.args?.sharesOut ?? 0n;
+    console.log("User bought  :", fmt(sharesOut));
+  }
 
   if (sellShares > 0n) {
     const sellTx = await market.sellOutcome(marketId, outcome, sellShares, 0);
@@ -204,6 +234,10 @@ async function main() {
 
   const pendingBefore = BigInt(await market.getPendingReward(rewardAddr));
   console.log("Pending before:", fmt(pendingBefore));
+  const adminPendingBefore = BigInt(await market.getPendingReward(signer.address));
+  console.log("Admin pending :", fmt(adminPendingBefore));
+  const positionsBefore = await market.positions(rewardAddr, marketId, outcome);
+  console.log("User shares  :", fmt(BigInt(positionsBefore)));
 
   const resolveTx = await market.resolve(marketId, winningOutcome);
   const resolveReceipt = await resolveTx.wait();
@@ -223,14 +257,17 @@ async function main() {
       lastSeenBlock,
       [
         ethers.id("SettlementProcessed(uint256,address,uint256)"),
-        ethers.zeroPadValue(ethers.toBeHex(marketId), 32),
+        null,
         null,
       ],
       contractAddress,
     );
 
     if (events.length > 0) {
-      const matching = events.filter((e) => (e.args as any)?.user === rewardAddr);
+      const matching = events.filter((e) => {
+        const args: any = e.args;
+        return args?.user === rewardAddr && BigInt(args?.marketId ?? 0) === marketId;
+      });
       if (matching.length > 0) {
         processedDetected = true;
         const latest = matching[matching.length - 1];
@@ -247,11 +284,36 @@ async function main() {
   const pendingAfter = BigInt(await market.getPendingReward(rewardAddr));
   console.log("Pending after :", fmt(pendingAfter));
   console.log("Pending delta :", fmt(pendingAfter - pendingBefore));
+  const adminPendingAfter = BigInt(await market.getPendingReward(signer.address));
+  console.log("Admin pending :", fmt(adminPendingAfter));
+  const positionsAfter = await market.positions(rewardAddr, marketId, outcome);
+  console.log("User shares  :", fmt(BigInt(positionsAfter)));
 
+  const pendingIncreased = pendingAfter > pendingBefore;
   if (processedDetected) {
     console.log("✅ Reactivity working: SettlementProcessed detected.");
+  } else if (pendingIncreased) {
+    console.log("✅ Reactivity working: pending rewards increased after resolve.");
+    console.log("   (Logs not found via RPC; confirming by state change.)");
+    const latest = BigInt(await ethers.provider.getBlockNumber());
+    const scan = await fetchParsedLogs(
+      startBlock,
+      latest,
+      [
+        ethers.id("SettlementProcessed(uint256,address,uint256)"),
+        null,
+        null,
+      ],
+      contractAddress,
+    );
+    const scanMatch = scan.filter((e) => {
+      const args: any = e.args;
+      return BigInt(args?.marketId ?? 0) === marketId;
+    });
+    console.log(`   SettlementProcessed logs found: ${scan.length}`);
+    console.log(`   SettlementProcessed for market: ${scanMatch.length}`);
   } else {
-    console.log("❌ Reactivity not confirmed: no SettlementProcessed detected in polling window.");
+    console.log("❌ Reactivity not confirmed: pending rewards unchanged.");
     console.log("   Check subscription topic Resolved(uint256,uint8) and emitter address.");
   }
 
