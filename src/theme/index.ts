@@ -1,54 +1,63 @@
-// Shared accent colors
+// ── Luxury Gamified Theme ────────────────────────────────────────
+// Deep blacks, champagne gold accents, emerald greens, ruby reds
+// Inspired by high-end casino/luxury brand aesthetics with gamification
+
 const shared = {
-  accent: '#FF45A8',
-  accentLight: '#FF6FBF',
-  accentGlow: 'rgba(255,69,168,0.30)',
-  accentDim: 'rgba(255,69,168,0.12)',
+  // Primary accent — warm rose gold (true jewelry gold, not yellow)
+  accent: '#C4956A',
+  accentLight: '#D4A87E',
+  accentGlow: 'rgba(196,149,106,0.30)',
+  accentDim: 'rgba(196,149,106,0.12)',
 
-  purple: '#8B5CF6',
-  purpleGlow: 'rgba(139,92,246,0.25)',
+  // Secondary — muted mauve
+  purple: '#9B8AAF',
+  purpleGlow: 'rgba(155,138,175,0.25)',
 
-  profit: '#34D399',
-  loss: '#F87171',
+  // Outcomes
+  profit: '#50E3A4', // emerald mint
+  loss: '#E8556D',   // muted ruby
+
+  // XP / Gamification
+  xp: '#C4956A',
+  xpGlow: 'rgba(196,149,106,0.35)',
+  streak: '#D4A06A', // warm amber
+  badge: '#50E3A4',
 };
 
 export const lightTheme = {
   ...shared,
   mode: 'light' as const,
 
-  primaryBg: '#FFFFFF',
-  secondaryBg: '#F5F5F7',
+  primaryBg: '#FAFAF8',
+  secondaryBg: '#F2F0EC',
   cardBg: '#FFFFFF',
-  border: '#E5E5EA',
+  border: '#E8E4DC',
 
-  textPrimary: '#1A1A1A',
-  textSecondary: '#6B7280',
+  textPrimary: '#1A1714',
+  textSecondary: '#8A8478',
 
-  yes: '#FF45A8',
-  no: '#1A1A1A',
-  yesBg: 'rgba(255,69,168,0.10)',
-  noBg: 'rgba(0,0,0,0.05)',
-  yesGlow: 'rgba(255,69,168,0.35)',
-  noGlow: 'rgba(0,0,0,0.08)',
+  yes: '#D4AF37',
+  no: '#1A1714',
+  yesBg: 'rgba(212,175,55,0.10)',
+  noBg: 'rgba(0,0,0,0.04)',
+  yesGlow: 'rgba(212,175,55,0.35)',
+  noGlow: 'rgba(0,0,0,0.06)',
 
-  inactive: '#9CA3AF',
+  inactive: '#B8B0A4',
 
-  glass: 'rgba(0,0,0,0.04)',
-  glassBorder: 'rgba(0,0,0,0.08)',
+  glass: 'rgba(0,0,0,0.03)',
+  glassBorder: 'rgba(0,0,0,0.06)',
 
-  // Card overlay for text readability on card gradient
-  cardGradientEnd: 'rgba(255,255,255,0.97)',
-  cardGradientMid: 'rgba(255,255,255,0.6)',
+  cardGradientEnd: 'rgba(250,250,248,0.97)',
+  cardGradientMid: 'rgba(250,250,248,0.6)',
 
-  // Navigation bar
-  navBg: '#FFFFFF',
-  navBorder: '#E5E5EA',
+  navBg: '#FAFAF8',
+  navBorder: '#E8E4DC',
 
-  // Action buttons
   noBtnBg: '#FFFFFF',
-  noBtnBorder: '#D1D5DB',
-  noBtnIcon: '#1A1A1A',
-  yesBtnBg: '#FF45A8',
+  noBtnBorder: '#D1CBC0',
+  noBtnIcon: '#1A1714',
+  yesBtnBg: '#D4AF37',
   yesBtnIcon: '#FFFFFF',
 
   shadow: '#000000',
@@ -58,44 +67,43 @@ export const darkTheme = {
   ...shared,
   mode: 'dark' as const,
 
-  primaryBg: '#0D0011',
-  secondaryBg: '#170820',
-  cardBg: '#1E0C2E',
-  border: '#2E1940',
+  primaryBg: '#0A0A0A',
+  secondaryBg: '#141414',
+  cardBg: '#1A1A1A',
+  border: '#2A2A2A',
 
-  textPrimary: '#FFFFFF',
-  textSecondary: '#9CA3AF',
+  textPrimary: '#F5F0E8',
+  textSecondary: '#8A8478',
 
-  yes: '#FF45A8',
-  no: '#FFFFFF',
-  yesBg: 'rgba(255,69,168,0.15)',
-  noBg: 'rgba(255,255,255,0.08)',
-  yesGlow: 'rgba(255,69,168,0.4)',
-  noGlow: 'rgba(255,255,255,0.12)',
+  yes: '#D4AF37',
+  no: '#F5F0E8',
+  yesBg: 'rgba(212,175,55,0.15)',
+  noBg: 'rgba(245,240,232,0.06)',
+  yesGlow: 'rgba(212,175,55,0.4)',
+  noGlow: 'rgba(245,240,232,0.08)',
 
-  inactive: '#555566',
+  inactive: '#4A4A4A',
 
-  glass: 'rgba(255,255,255,0.06)',
-  glassBorder: 'rgba(255,255,255,0.10)',
+  glass: 'rgba(255,255,255,0.04)',
+  glassBorder: 'rgba(255,255,255,0.08)',
 
-  cardGradientEnd: 'rgba(13,0,17,0.97)',
-  cardGradientMid: 'rgba(13,0,17,0.6)',
+  cardGradientEnd: 'rgba(10,10,10,0.97)',
+  cardGradientMid: 'rgba(10,10,10,0.6)',
 
-  navBg: '#0D0011',
-  navBorder: '#2E1940',
+  navBg: '#0A0A0A',
+  navBorder: '#1E1E1E',
 
-  noBtnBg: '#1E0C2E',
-  noBtnBorder: '#9CA3AF',
-  noBtnIcon: '#FFFFFF',
-  yesBtnBg: '#FF45A8',
-  yesBtnIcon: '#FFFFFF',
+  noBtnBg: '#1A1A1A',
+  noBtnBorder: '#8A8478',
+  noBtnIcon: '#F5F0E8',
+  yesBtnBg: '#D4AF37',
+  yesBtnIcon: '#0A0A0A',
 
-  shadow: '#FF45A8',
+  shadow: '#D4AF37',
 };
 
-export type AppTheme = typeof lightTheme;
+export type AppTheme = typeof lightTheme | typeof darkTheme;
 
-// Keep these for non-theme-context usage
 export const colors = lightTheme;
 
 export const spacing = {

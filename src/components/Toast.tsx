@@ -35,11 +35,13 @@ export const Toast: React.FC<ToastProps> = ({ visible, message, onHide, type = '
 
   if (!visible) return null;
 
-  const bg = type === 'success' ? '#1DB954' : '#FF4757';
+  const bg = type === 'error' ? '#2A1014' : '#1A1A1A';
+  const border = type === 'error' ? '#E8556D' : '#C4956A';
+  const iconColor = type === 'error' ? '#E8556D' : '#C4956A';
 
   return (
-    <Animated.View style={[styles.container, { backgroundColor: bg, transform: [{ translateY }], opacity }]}>
-      <Text style={styles.icon}>{type === 'success' ? '✓' : '✕'}</Text>
+    <Animated.View style={[styles.container, { backgroundColor: bg, borderColor: border, transform: [{ translateY }], opacity }]}>
+      <Text style={[styles.icon, { color: iconColor }]}>{type === 'success' ? '◆' : '✕'}</Text>
       <Text style={styles.message}>{message}</Text>
     </Animated.View>
   );
@@ -47,23 +49,11 @@ export const Toast: React.FC<ToastProps> = ({ visible, message, onHide, type = '
 
 const styles = StyleSheet.create({
   container: {
-    position: 'absolute',
-    top: 60,
-    alignSelf: 'center',
-    width: SCREEN_WIDTH - 40,
-    maxWidth: 400,
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 18,
-    paddingVertical: 14,
-    borderRadius: 14,
-    zIndex: 9999,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.2,
-    shadowRadius: 8,
-    elevation: 10,
+    position: 'absolute', top: 60, alignSelf: 'center', width: SCREEN_WIDTH - 40, maxWidth: 400,
+    flexDirection: 'row', alignItems: 'center', paddingHorizontal: 18, paddingVertical: 14,
+    borderRadius: 14, borderWidth: 1, zIndex: 9999,
+    shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 8, elevation: 10,
   },
-  icon: { fontSize: 18, fontWeight: '700', color: '#FFF', marginRight: 10 },
-  message: { fontSize: 15, fontWeight: '600', color: '#FFF', flex: 1 },
+  icon: { fontSize: 18, fontWeight: '700', marginRight: 10 },
+  message: { fontSize: 14, fontWeight: '600', color: '#F5F0E8', flex: 1 },
 });

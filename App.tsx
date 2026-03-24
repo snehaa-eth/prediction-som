@@ -1,17 +1,13 @@
-import '@walletconnect/react-native-compat';
-
 import React from 'react';
 import { View, Platform, Dimensions } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { SafeAreaProvider, initialWindowMetrics } from 'react-native-safe-area-context';
 import { NavigationContainer } from '@react-navigation/native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
-import { AppKitProvider, AppKit, useAccount } from '@reown/appkit-react-native';
 import { ThemeProvider, useTheme } from './src/theme/ThemeContext';
 import { MainTabs } from './src/navigation/AppNavigator';
-import { WalletProvider } from './src/context/WalletContext';
+import { WalletProvider, useWallet } from './src/context/WalletContext';
 import { OnboardingScreen } from './src/screens/OnboardingScreen';
-import { appKit } from './src/lib/AppKitConfig';
 
 function AppInner() {
   const { isDark } = useTheme();
@@ -25,13 +21,13 @@ function AppInner() {
 }
 
 function AuthGate() {
-  const { isConnected } = useAccount();
+  const { isConnected, loading } = useWallet();
+
+  if (loading) return null; // splash / loading state
 
   return isConnected ? (
     <NavigationContainer>
-      <WalletProvider>
-        <MainTabs />
-      </WalletProvider>
+      <MainTabs />
     </NavigationContainer>
   ) : (
     <OnboardingScreen />
@@ -48,14 +44,13 @@ export default function App() {
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       <SafeAreaProvider initialMetrics={initialWindowMetrics ?? FALLBACK_METRICS}>
-        <AppKitProvider instance={appKit}>
+        <WalletProvider>
           <ThemeProvider>
             <View style={{ flex: 1 }}>
               <AppInner />
-              <AppKit />
             </View>
           </ThemeProvider>
-        </AppKitProvider>
+        </WalletProvider>
       </SafeAreaProvider>
     </GestureHandlerRootView>
   );

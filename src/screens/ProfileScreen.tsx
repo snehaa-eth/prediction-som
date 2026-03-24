@@ -1,96 +1,135 @@
-import React from 'react';
-import { View, Text, StyleSheet, Pressable, ScrollView, Switch } from 'react-native';
+import React, { useState } from 'react';
+import { View, Text, StyleSheet, Pressable, ScrollView, Switch, Alert, Platform } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { formatUnits } from 'ethers';
+import * as Clipboard from 'expo-clipboard';
 import { useTheme } from '../theme/ThemeContext';
 import { radii, spacing } from '../theme';
 import { useWallet } from '../context/WalletContext';
-import { userProfile } from '../data/mockData';
+import { useUserStats } from '../hooks/useContract';
 
 const MAX_CONTENT_WIDTH = 600;
 
 export const ProfileScreen: React.FC = () => {
   const { theme, isDark, toggleTheme } = useTheme();
-  const { shortAddress, address, logout } = useWallet();
+  const { shortAddress, address, logout, exportKey } = useWallet();
+  const { stats, balance, loading, refresh } = useUserStats();
+  const [copied, setCopied] = useState(false);
 
-  const stats = [
-    { label: 'Total Trades', value: userProfile.totalTrades.toString() },
-    { label: 'Win Rate', value: `${userProfile.winRate}%` },
-    { label: 'Total Profit', value: `$${userProfile.totalProfit.toLocaleString()}` },
-    { label: 'Rank', value: `#${userProfile.rank}` },
+  const handleCopy = async () => {
+    if (!address) return;
+    await Clipboard.setStringAsync(address);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
+
+  const balanceDisplay = Number(formatUnits(balance, 18)).toFixed(2);
+  const totalWonDisplay = stats ? Number(formatUnits(stats.totalWon, 18)).toFixed(0) : '0';
+  const winRate = stats && (stats.wins + stats.losses) > 0
+    ? Math.round((stats.wins / (stats.wins + stats.losses)) * 100)
+    : 0;
+
+  const statsList = [
+    { label: 'Total Trades', value: stats ? String(stats.wins + stats.losses) : '0', color: theme.textPrimary },
+    { label: 'Win Rate', value: `${winRate}%`, color: winRate >= 50 ? theme.profit : theme.loss },
+    { label: 'Total Won', value: `${totalWonDisplay} TFY`, color: theme.accent },
+    { label: 'W / L', value: stats ? `${stats.wins} / ${stats.losses}` : '0 / 0', color: theme.textPrimary },
   ];
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: theme.primaryBg }]} edges={['top', 'left', 'right']}>
       <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
         <View style={styles.centered}>
-          <Text style={[styles.screenTitle, { color: theme.textPrimary }]}>Profile</Text>
-
-          {/* Theme Toggle */}
-          <View>
-            <View style={[styles.themeToggle, { backgroundColor: theme.cardBg, borderColor: theme.border }]}>
-              <Text style={[styles.themeLabel, { color: theme.textPrimary }]}>
-                {isDark ? '🌙 Dark Mode' : '☀️ Light Mode'}
+          <View style={styles.titleRow}>
+            <Text style={[styles.screenTitle, { color: theme.textPrimary }]}>Profile</Text>
+            <Pressable
+              style={[styles.refreshBtn, { backgroundColor: 'rgba(196,149,106,0.08)', borderColor: theme.accent, borderWidth: 1 }]}
+              onPress={refresh}>
+              <Text style={[styles.refreshText, { color: theme.accent }]}>
+                {loading ? '...' : '↻ Refresh'}
               </Text>
-              <Switch
-                value={isDark}
-                onValueChange={toggleTheme}
-                trackColor={{ false: '#D1D5DB', true: theme.accent }}
-                thumbColor="#FFFFFF"
-              />
-            </View>
+            </Pressable>
           </View>
 
-          <View>
-            <View style={[styles.walletCard, { backgroundColor: theme.cardBg, borderColor: theme.border }]}>
-              <View style={[styles.avatarCircle, { backgroundColor: theme.accentDim }]}>
-                <Text style={[styles.avatarText, { color: theme.accent }]}>{shortAddress?.slice(2, 6) ?? '0x00'}</Text>
+          {/* Wallet card */}
+          <View style={[styles.walletCard, { backgroundColor: theme.cardBg, borderColor: theme.border }]}>
+            <View style={[styles.avatarCircle, { backgroundColor: 'rgba(196,149,106,0.12)' }]}>
+              <Text style={[styles.avatarText, { color: theme.accent }]}>
+                {shortAddress?.slice(2, 6) ?? '??'}
+              </Text>
+            </View>
+            <View style={styles.walletInfo}>
+              <Text style={[styles.walletLabel, { color: theme.textSecondary }]}>Connected Wallet</Text>
+              <Text style={[styles.walletAddress, { color: theme.textPrimary }]}>{shortAddress ?? '—'}</Text>
+            </View>
+            <Pressable
+              style={[styles.copyBtn, { backgroundColor: copied ? 'rgba(80,227,164,0.12)' : 'rgba(196,149,106,0.08)', borderColor: copied ? theme.profit : theme.accent, borderWidth: 1 }]}
+              onPress={handleCopy}>
+              <Text style={[styles.copyBtnText, { color: copied ? theme.profit : theme.accent }]}>
+                {copied ? 'Copied!' : 'Copy'}
+              </Text>
+            </Pressable>
+          </View>
+          <View style={[styles.networkRow, { backgroundColor: theme.cardBg, borderColor: theme.border }]}>
+            <View style={[styles.networkDot, { backgroundColor: theme.profit }]} />
+            <Text style={[styles.networkName, { color: theme.textPrimary }]}>Somnia Shannon Testnet</Text>
+            <Text style={[styles.networkChain, { color: theme.textSecondary }]}>Chain 50312</Text>
+          </View>
+
+          {/* Balance */}
+          <View style={[styles.balanceCard, { backgroundColor: theme.cardBg, borderColor: theme.accent }]}>
+            <View style={[styles.balanceAccent, { backgroundColor: theme.accent }]} />
+            <Text style={[styles.balanceLabel, { color: theme.textSecondary }]}>TFY Balance</Text>
+            <Text style={[styles.balanceValue, { color: theme.accent }]}>
+              {loading ? '...' : balanceDisplay}
+            </Text>
+          </View>
+
+          {/* Stats grid */}
+          <Text style={[styles.sectionTitle, { color: theme.textPrimary }]}>Statistics</Text>
+          <View style={styles.statsGrid}>
+            {statsList.map((stat) => (
+              <View key={stat.label} style={[styles.statCard, { backgroundColor: theme.cardBg, borderColor: theme.border }]}>
+                <Text style={[styles.statLabel, { color: theme.textSecondary }]}>{stat.label}</Text>
+                <Text style={[styles.statValue, { color: stat.color }]}>{stat.value}</Text>
               </View>
-              <View style={styles.walletInfo}>
-                <Text style={[styles.walletLabel, { color: theme.textSecondary }]}>Connected Wallet</Text>
-                <Text style={[styles.walletAddress, { color: theme.textPrimary }]}>{shortAddress ?? '—'}</Text>
-              </View>
-              <Pressable style={[styles.copyBtn, { backgroundColor: theme.glass }]}>
-                <Text style={[styles.copyBtnText, { color: theme.textSecondary }]}>Copy</Text>
-              </Pressable>
-            </View>
-          </View>
-
-          <View>
-            <View style={[styles.balanceCard, { backgroundColor: theme.cardBg, borderColor: theme.accent }]}>
-              <Text style={[styles.balanceLabel, { color: theme.textSecondary }]}>Total Balance</Text>
-              <Text style={[styles.balanceValue, { color: theme.accent }]}>${userProfile.balance.toLocaleString()}</Text>
-              <View style={styles.balanceActions}>
-                <Pressable style={[styles.balanceBtn, { backgroundColor: theme.accent }]}>
-                  <Text style={styles.balanceBtnText}>Deposit</Text>
-                </Pressable>
-                <Pressable style={[styles.balanceBtn, styles.withdrawBtn, { backgroundColor: theme.secondaryBg, borderColor: theme.border }]}>
-                  <Text style={[styles.balanceBtnText, { color: theme.textPrimary }]}>Withdraw</Text>
-                </Pressable>
-              </View>
-            </View>
-          </View>
-
-          <View>
-            <Text style={[styles.sectionTitle, { color: theme.textPrimary }]}>Statistics</Text>
-            <View style={styles.statsGrid}>
-              {stats.map((stat, i) => (
-                <View key={stat.label} style={[styles.statCard, { backgroundColor: theme.cardBg, borderColor: theme.border }]}>
-                  <Text style={[styles.statLabel, { color: theme.textSecondary }]}>{stat.label}</Text>
-                  <Text style={[styles.statValue, { color: i === 2 ? theme.profit : i === 3 ? theme.accent : theme.textPrimary }]}>{stat.value}</Text>
-                </View>
-              ))}
-            </View>
-          </View>
-
-          <View>
-            <Text style={[styles.sectionTitle, { color: theme.textPrimary }]}>Settings</Text>
-            {['Notifications', 'Security', 'Help & Support', 'About'].map(item => (
-              <Pressable key={item} style={[styles.settingsItem, { backgroundColor: theme.cardBg, borderColor: theme.border }]}>
-                <Text style={[styles.settingsText, { color: theme.textPrimary }]}>{item}</Text>
-                <Text style={[styles.settingsArrow, { color: theme.textSecondary }]}>›</Text>
-              </Pressable>
             ))}
           </View>
+
+          {/* Settings */}
+          <Text style={[styles.sectionTitle, { color: theme.textPrimary }]}>Settings</Text>
+
+          <View style={[styles.settingsItem, { backgroundColor: theme.cardBg, borderColor: theme.border }]}>
+            <Text style={[styles.settingsText, { color: theme.textPrimary }]}>
+              {isDark ? 'Dark Mode' : 'Light Mode'}
+            </Text>
+            <Switch
+              value={isDark}
+              onValueChange={toggleTheme}
+              trackColor={{ false: '#D1CBC0', true: theme.accent }}
+              thumbColor="#FFFFFF"
+            />
+          </View>
+
+          {['Notifications', 'Security', 'Help & Support', 'About'].map(item => (
+            <Pressable key={item} style={[styles.settingsItem, { backgroundColor: theme.cardBg, borderColor: theme.border }]}>
+              <Text style={[styles.settingsText, { color: theme.textPrimary }]}>{item}</Text>
+              <Text style={[styles.settingsArrow, { color: theme.textSecondary }]}>›</Text>
+            </Pressable>
+          ))}
+
+          <Pressable
+            style={[styles.exportBtn, { backgroundColor: theme.cardBg, borderColor: theme.accent }]}
+            onPress={async () => {
+              const pk = await exportKey();
+              if (!pk) return;
+              await Clipboard.setStringAsync(pk);
+              const msg = 'Private key copied to clipboard. Store it safely!';
+              if (Platform.OS === 'web') window.alert(msg);
+              else Alert.alert('Key Exported', msg);
+            }}>
+            <Text style={[styles.exportText, { color: theme.accent }]}>Export Private Key</Text>
+          </Pressable>
 
           <Pressable style={[styles.disconnectBtn, { borderColor: theme.loss }]} onPress={() => logout()}>
             <Text style={[styles.disconnectText, { color: theme.loss }]}>Sign Out</Text>
@@ -105,32 +144,36 @@ const styles = StyleSheet.create({
   container: { flex: 1 },
   scrollContent: { paddingBottom: 100 },
   centered: { width: '100%', maxWidth: MAX_CONTENT_WIDTH, alignSelf: 'center', padding: spacing.lg },
-  screenTitle: { fontSize: 28, fontWeight: '700', marginBottom: 20 },
-  themeToggle: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', borderRadius: radii.card, padding: 16, marginBottom: 14, borderWidth: 1 },
-  themeLabel: { fontSize: 16, fontWeight: '600' },
+  titleRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 },
+  screenTitle: { fontSize: 28, fontWeight: '700', letterSpacing: -0.5 },
+  refreshBtn: { paddingHorizontal: 14, paddingVertical: 8, borderRadius: 20 },
+  refreshText: { fontSize: 12, fontWeight: '700', letterSpacing: 0.5 },
   walletCard: { flexDirection: 'row', alignItems: 'center', borderRadius: radii.card, padding: 16, marginBottom: 14, borderWidth: 1 },
   avatarCircle: { width: 48, height: 48, borderRadius: 24, justifyContent: 'center', alignItems: 'center', marginRight: 12 },
-  avatarText: { fontSize: 16, fontWeight: '700' },
+  avatarText: { fontSize: 15, fontWeight: '800', letterSpacing: 1 },
   walletInfo: { flex: 1 },
-  walletLabel: { fontSize: 11, fontWeight: '500', marginBottom: 2 },
-  walletAddress: { fontSize: 15, fontWeight: '500' },
-  copyBtn: { paddingHorizontal: 14, paddingVertical: 6, borderRadius: radii.sm },
-  copyBtnText: { fontSize: 11, fontWeight: '500' },
-  balanceCard: { borderRadius: radii.card, padding: 20, marginBottom: 24, borderWidth: 1 },
-  balanceLabel: { fontSize: 13, fontWeight: '500', marginBottom: 8 },
-  balanceValue: { fontSize: 32, fontWeight: '700', marginBottom: 18 },
-  balanceActions: { flexDirection: 'row', gap: 10 },
-  balanceBtn: { flex: 1, height: 42, borderRadius: radii.button, justifyContent: 'center', alignItems: 'center' },
-  balanceBtnText: { fontSize: 14, fontWeight: '600', color: '#FFF' },
-  withdrawBtn: { borderWidth: 1 },
-  sectionTitle: { fontSize: 18, fontWeight: '600', marginBottom: 14 },
+  walletLabel: { fontSize: 11, fontWeight: '500', marginBottom: 2, letterSpacing: 0.3 },
+  walletAddress: { fontSize: 15, fontWeight: '600' },
+  copyBtn: { paddingHorizontal: 14, paddingVertical: 8, borderRadius: 20 },
+  copyBtnText: { fontSize: 12, fontWeight: '700', letterSpacing: 0.5 },
+  networkRow: { flexDirection: 'row', alignItems: 'center', borderRadius: radii.button, paddingHorizontal: 16, height: 44, marginBottom: 14, borderWidth: 1, gap: 8 },
+  networkDot: { width: 6, height: 6, borderRadius: 3 },
+  networkName: { fontSize: 13, fontWeight: '600', flex: 1 },
+  networkChain: { fontSize: 11, fontWeight: '500' },
+  balanceCard: { borderRadius: radii.card, padding: 22, marginBottom: 24, borderWidth: 1, overflow: 'hidden' },
+  balanceAccent: { position: 'absolute', top: 0, left: 0, right: 0, height: 2 },
+  balanceLabel: { fontSize: 12, fontWeight: '500', marginBottom: 8, letterSpacing: 0.5 },
+  balanceValue: { fontSize: 36, fontWeight: '800' },
+  sectionTitle: { fontSize: 18, fontWeight: '600', marginBottom: 14, letterSpacing: -0.3 },
   statsGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 10, marginBottom: 24 },
   statCard: { width: '48%', borderRadius: radii.button, padding: 16, borderWidth: 1 },
-  statLabel: { fontSize: 11, fontWeight: '500', marginBottom: 8 },
-  statValue: { fontSize: 20, fontWeight: '700' },
+  statLabel: { fontSize: 11, fontWeight: '500', marginBottom: 8, letterSpacing: 0.3 },
+  statValue: { fontSize: 20, fontWeight: '800' },
   settingsItem: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', height: 52, borderRadius: radii.button, paddingHorizontal: 16, marginBottom: 6, borderWidth: 1 },
-  settingsText: { fontSize: 15 },
+  settingsText: { fontSize: 15, fontWeight: '500' },
   settingsArrow: { fontSize: 22 },
-  disconnectBtn: { marginTop: 24, height: 48, borderRadius: radii.button, borderWidth: 1, justifyContent: 'center', alignItems: 'center' },
-  disconnectText: { fontSize: 15, fontWeight: '500' },
+  exportBtn: { marginTop: 24, height: 48, borderRadius: 24, borderWidth: 1, justifyContent: 'center', alignItems: 'center' },
+  exportText: { fontSize: 14, fontWeight: '600' },
+  disconnectBtn: { marginTop: 10, height: 48, borderRadius: 24, borderWidth: 1, justifyContent: 'center', alignItems: 'center' },
+  disconnectText: { fontSize: 15, fontWeight: '600' },
 });

@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import { View, Text } from 'react-native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
@@ -9,7 +9,7 @@ import { MarketsScreen } from '../screens/MarketsScreen';
 import { MarketDetailScreen } from '../screens/MarketDetailScreen';
 import { PredictScreen } from '../screens/PredictScreen';
 import { PortfolioScreen } from '../screens/PortfolioScreen';
-import { ActivityScreen } from '../screens/ActivityScreen';
+import { LeaderboardScreen } from '../screens/LeaderboardScreen';
 import { ProfileScreen } from '../screens/ProfileScreen';
 
 const Tab = createBottomTabNavigator();
@@ -26,41 +26,56 @@ export const MainTabs = () => {
   const { theme } = useTheme();
   const insets = useSafeAreaInsets();
 
-  const icons: Record<string, string> = {
-    Markets: '◎', Predict: '◆', Portfolio: '◈', Activity: '↻', Profile: '◉',
-  };
+  const tabs: { name: string; icon: string; component: React.ComponentType<any> }[] = [
+    { name: 'Markets', icon: '◎', component: MarketsStack },
+    { name: 'Predict', icon: '◆', component: PredictScreen },
+    { name: 'Portfolio', icon: '◈', component: PortfolioScreen },
+    { name: 'Ranks', icon: '★', component: LeaderboardScreen },
+    { name: 'Profile', icon: '◉', component: ProfileScreen },
+  ];
 
   return (
     <Tab.Navigator
       initialRouteName="Predict"
       screenOptions={{
         headerShown: false,
-        tabBarStyle: { height: 72 + insets.bottom, backgroundColor: theme.navBg, borderTopWidth: 1, borderTopColor: theme.navBorder, paddingTop: 8, paddingBottom: Math.max(insets.bottom, 12), elevation: 0, shadowOpacity: 0 },
+        tabBarStyle: {
+          height: 72 + insets.bottom,
+          backgroundColor: theme.navBg,
+          borderTopWidth: 1,
+          borderTopColor: theme.navBorder,
+          paddingTop: 8,
+          paddingBottom: Math.max(insets.bottom, 12),
+          elevation: 0,
+          shadowOpacity: 0,
+        },
         tabBarShowLabel: false,
       }}>
-      {(['Markets', 'Predict', 'Portfolio', 'Activity', 'Profile'] as const).map(name => (
+      {tabs.map(({ name, icon, component }) => (
         <Tab.Screen
           key={name}
           name={name}
-          component={
-            name === 'Markets' ? MarketsStack :
-            name === 'Predict' ? PredictScreen :
-            name === 'Portfolio' ? PortfolioScreen :
-            name === 'Activity' ? ActivityScreen : ProfileScreen
-          }
+          component={component}
           options={{
-            tabBarIcon: ({ focused }) => {
-              return (
-                <View style={{ alignItems: 'center', gap: 3, width: 60 }}>
-                  <Text style={{ fontSize: 22, color: focused ? theme.accent : theme.inactive }}>
-                    {icons[name]}
-                  </Text>
-                  <Text numberOfLines={1} style={{ fontSize: 10, fontWeight: focused ? '700' : '500', color: focused ? theme.accent : theme.inactive, textAlign: 'center' }}>
-                    {name}
-                  </Text>
-                </View>
-              );
-            },
+            tabBarIcon: ({ focused }) => (
+              <View style={{ alignItems: 'center', gap: 3, width: 60 }}>
+                <Text style={{
+                  fontSize: 20,
+                  color: focused ? theme.accent : theme.inactive,
+                }}>
+                  {icon}
+                </Text>
+                <Text numberOfLines={1} style={{
+                  fontSize: 10,
+                  fontWeight: focused ? '700' : '500',
+                  color: focused ? theme.accent : theme.inactive,
+                  textAlign: 'center',
+                  letterSpacing: 0.5,
+                }}>
+                  {name}
+                </Text>
+              </View>
+            ),
           }}
         />
       ))}

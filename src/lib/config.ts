@@ -4,10 +4,12 @@
  */
 export const WALLETCONNECT_PROJECT_ID = process.env.EXPO_PUBLIC_WALLETCONNECT_PROJECT_ID ?? '';
 
-/** Base Sepolia for testing; change to Base mainnet / Polygon for prod */
-export const CHAIN_ID = 8453; // Base mainnet
-export const CHAIN_ID_HEX = '0x2105' as const;
+/** Somnia Shannon Testnet */
+export const CHAIN_ID = 50312;
+export const CHAIN_ID_HEX = '0xC488' as const;
+export const RPC_URL = 'https://dream-rpc.somnia.network/';
+export const EXPLORER_URL = 'https://shannon-explorer.somnia.network';
 
-/** Contract addresses - set after deployment */
-export const PREDICTION_MARKET_ADDRESS = (process.env.EXPO_PUBLIC_MARKET_ADDRESS ?? '0x0000000000000000000000000000000000000000') as `0x${string}`;
-export const USDC_ADDRESS = (process.env.EXPO_PUBLIC_USDC_ADDRESS ?? '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913') as `0x${string}`; // Base USDC
+/** Contract addresses — deployed on Somnia Testnet */
+export const PREDICTION_MARKET_ADDRESS = (process.env.EXPO_PUBLIC_MARKET_ADDRESS ?? '0xEf94e447c1cD561307EB606E2edd31Fd8A239082') as `0x${string}`;
+export const COLLATERAL_ADDRESS = (process.env.EXPO_PUBLIC_COLLATERAL_ADDRESS ?? '0x6D6eD86155CA2BF79e12b2499e0a9bd3563A1C4f') as `0x${string}`; // TFY token
