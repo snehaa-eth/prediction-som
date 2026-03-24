@@ -56,8 +56,7 @@ export const appKit = createAppKit({
     socials: false,
     showWallets: true,
     swaps: false,
-    onramp: false,
-    smartSessions: false,
+    onramp: false
   },
   clipboardClient: {
     setString: async (value: string) => {
