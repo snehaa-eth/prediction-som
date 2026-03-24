@@ -1,4 +1,4 @@
-# PredictionMarket
+# Twister
 
 A swipe-to-trade prediction market app built on the **Somnia blockchain**. Think Tinder meets Polymarket — swipe right for YES, left for NO.
 
