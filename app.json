@@ -10,10 +10,11 @@
     "splash": {
       "image": "./assets/splash-icon.png",
       "resizeMode": "contain",
-      "backgroundColor": "#ffffff"
+      "backgroundColor": "#0A0A0A"
     },
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.snehaa19.predictionmarket"
     },
     "androidStatusBar": {
       "translucent": false
@@ -25,7 +26,8 @@
         "backgroundImage": "./assets/android-icon-background.png",
         "monochromeImage": "./assets/android-icon-monochrome.png"
       },
-      "predictiveBackGestureEnabled": false
+      "predictiveBackGestureEnabled": false,
+      "package": "com.snehaa19.predictionmarket"
     },
     "web": {
       "favicon": "./assets/favicon.png"
@@ -33,6 +35,12 @@
     "plugins": [
       "expo-secure-store",
       "expo-web-browser"
-    ]
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "b5a96ce0-feee-45a8-b56d-3fdee56345d8"
+      }
+    },
+    "owner": "snehaa19"
   }
 }
