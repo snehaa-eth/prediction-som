@@ -6,9 +6,9 @@
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
-    "userInterfaceStyle": "light",
+    "userInterfaceStyle": "dark",
     "splash": {
-      "image": "./assets/splash-icon.png",
+      "image": "./assets/pred_logo.png",
       "resizeMode": "contain",
       "backgroundColor": "#0A0A0A"
     },
@@ -17,7 +17,9 @@
       "bundleIdentifier": "com.snehaa19.predictionmarket"
     },
     "androidStatusBar": {
-      "translucent": false
+      "translucent": false,
+      "backgroundColor": "#0A0A0A",
+      "barStyle": "light-content"
     },
     "android": {
       "adaptiveIcon": {
