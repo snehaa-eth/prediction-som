@@ -32,6 +32,8 @@ yarn-error.*
 
 # local env files
 .env*.local
+funder-server/.env
+reactivity-prediction/.env
 
 # typescript
 *.tsbuildinfo

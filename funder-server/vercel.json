@@ -1,0 +1,9 @@
+{
+  "version": 2,
+  "builds": [
+    { "src": "api/fund.js", "use": "@vercel/node" }
+  ],
+  "routes": [
+    { "src": "/fund", "dest": "/api/fund.js" }
+  ]
+}
